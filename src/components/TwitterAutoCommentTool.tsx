@@ -59,6 +59,11 @@ export default function TwitterAutoCommentTool() {
   const [authLoading, setAuthLoading] = useState(false);
   const [tokenStatus, setTokenStatus] = useState<'checking' | 'valid' | 'invalid' | null>(null);
   const [twitterTag, setTwitterTag] = useState(''); // Tambahan untuk tag
+  // State untuk fitur custom tweet
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [generatedTweets, setGeneratedTweets] = useState<string[]>([]);
+  const [isGeneratingCustom, setIsGeneratingCustom] = useState(false);
+  const [isPostingCustom, setIsPostingCustom] = useState(false);
 
   const twitterName = getCookie('twitter_name');
 
@@ -356,6 +361,72 @@ export default function TwitterAutoCommentTool() {
     }
   };
 
+  // Fungsi untuk generate tweet dari prompt custom (10 tweet)
+  const generateTweetFromPrompt = async () => {
+    if (!customPrompt.trim()) return;
+    setIsGeneratingCustom(true);
+    setGeneratedTweets([]);
+    setError(null);
+    setSuccess(null);
+    try {
+      const response = await fetch('http://localhost:4000/twitter/generate-tweet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: customPrompt })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Gagal generate tweet');
+      // Parsing: asumsikan tweet dipisah newline atau bernomor
+      let tweets: string[] = [];
+      if (data.tweet) {
+        // Coba split by nomor (1. ... 2. ... dst) atau newline
+        const byNumber = data.tweet.split(/\n\s*\d+\.\s/).filter(Boolean);
+        if (byNumber.length > 1) {
+          tweets = byNumber.map((t: string, i: number) => (i === 0 && data.tweet.trim().match(/^\d+\./)) ? t : t.trim());
+        } else {
+          tweets = data.tweet.split(/\n+/).map((t: string) => t.trim()).filter(Boolean);
+        }
+      }
+      setGeneratedTweets(tweets);
+      setSuccess('Tweet berhasil direkomendasikan!');
+    } catch (error: any) {
+      setError('Gagal generate tweet: ' + error.message);
+    } finally {
+      setIsGeneratingCustom(false);
+    }
+  };
+
+  // Fungsi untuk post tweet baru (bukan reply)
+  const postNewTweet = async (tweetText: string) => {
+    const twitterToken = getCookie('twitter_token');
+    if (!twitterToken) {
+      setError('Twitter access token not found. Please login again.');
+      return;
+    }
+    setIsPostingCustom(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const response = await fetch('http://localhost:4000/twitter/post-tweet', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${twitterToken}`,
+        },
+        body: JSON.stringify({ tweet: tweetText })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Gagal post tweet');
+      setSuccess('Tweet berhasil diposting!');
+      setGeneratedTweets([]);
+      setCustomPrompt('');
+    } catch (error: any) {
+      setError('Gagal post tweet: ' + error.message);
+    } finally {
+      setIsPostingCustom(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       {/* Full-page loading overlay when checking token */}
@@ -368,7 +439,7 @@ export default function TwitterAutoCommentTool() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Real Twitter Auto Comment Tool</h1>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">Yapperyo</h1>
           <p className="text-gray-600">Production-ready Twitter automation with real data integration</p>
           
           {/* Setup Status */}
@@ -710,6 +781,71 @@ VITE_COHERE_API_KEY=your_cohere_key`}
             </div>
           </div>
         )}
+
+        {/* Custom Tweet Generator Section */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <h2 className="text-2xl font-semibold mb-6 flex items-center">
+            <MessageSquare className="w-6 h-6 mr-2 text-blue-600" />
+            Generate & Post Custom Tweet
+          </h2>
+          <div className="flex flex-col md:flex-row gap-4 mb-4">
+            <input
+              type="text"
+              placeholder="Tulis prompt tweet sesuai keinginan Anda..."
+              value={customPrompt}
+              onChange={e => setCustomPrompt(e.target.value)}
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onKeyPress={e => e.key === 'Enter' && generateTweetFromPrompt()}
+              disabled={isGeneratingCustom}
+            />
+            <button
+              onClick={generateTweetFromPrompt}
+              disabled={isGeneratingCustom || !customPrompt.trim()}
+              className="px-6 py-3 rounded-lg flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isGeneratingCustom ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Bot className="w-4 h-4" />
+                  Generate Tweet
+                </>
+              )}
+            </button>
+          </div>
+          {generatedTweets.length > 0 && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+              <div className="mb-2 text-gray-700">Pilih salah satu tweet untuk diposting:</div>
+              <ul className="space-y-4">
+                {generatedTweets.map((tweet, idx) => (
+                  <li key={idx} className="border border-gray-100 rounded-lg p-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2 bg-white">
+                    <span className="flex-1 text-gray-800">{tweet}</span>
+                    <button
+                      onClick={() => postNewTweet(tweet)}
+                      disabled={isPostingCustom}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {isPostingCustom ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Posting...
+                        </>
+                      ) : (
+                        <>
+                          <PlayCircle className="w-4 h-4" />
+                          Post Tweet
+                        </>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
 
         {/* Setup Instructions */}
         {tweets.length === 0 && !isSearching && setupStatus !== 'checking' && (

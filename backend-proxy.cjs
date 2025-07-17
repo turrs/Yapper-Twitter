@@ -357,6 +357,73 @@ app.post('/twitter/post-comment', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+app.post('/twitter/generate-tweet', async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) {
+    return res.status(400).json({ error: 'Missing prompt' });
+  }
+  try {
+    const response = await fetch('https://api.akbxr.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer UNLIMITED-BETA',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'auto',
+        messages: [
+          {
+            role: 'user',
+            content: `Buatkan saya 10 tweet dalam bahasa Inggris dengan minimal 200 hingga maks 250 kata, Saya merupakan copywriter dimana saya akan membuatkan tweet untuk menaikkan engagement, sehingga perlu content yang menarik dan tentu saja tata bahasanya tidak seperti hasil dari generate AI, sesuai permintaan berikut: ${prompt}. Jawab hanya dengan tweet-nya saja, tidak perlu penjelasan.`
+          }
+        ],
+        stream: false
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      return res.status(response.status).json({ error: data });
+    }
+    // Ambil isi tweet dari response
+    const tweet = data.choices?.[0]?.message?.content || '';
+    res.json({ tweet });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Post Tweet Endpoint (bukan reply)
+app.post('/twitter/post-tweet', async (req, res) => {
+  const { tweet } = req.body;
+  // Get access token from cookies
+  const authHeader = req.headers.authorization;
+  const twitterToken = authHeader ? authHeader.split(' ')[1] : null;
+  if (!twitterToken) {
+    return res.status(401).json({ error: 'Twitter access token not found. Please login again.' });
+  }
+  if (!tweet) {
+    return res.status(400).json({ error: 'Missing tweet content' });
+  }
+  try {
+    const response = await fetch('https://api.twitter.com/2/tweets', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${twitterToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: tweet
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      return res.status(response.status).json({ error: data.error || data.title || 'Failed to post tweet' });
+    }
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 app.get('/twitter/me', async (req, res) => {
   console.log('[DEBUG] req.body:', req.body);
   const token = req.body.token;
