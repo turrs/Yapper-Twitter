@@ -11,7 +11,7 @@ class ProxyService {
     // Tidak perlu Bearer Token di frontend, cukup kirim ke backend
     const params = new URLSearchParams({ query, max_results: String(maxResults) });
     try {
-      const response = await fetch(`${this.proxyUrl}/twitter/search?${params.toString()}`);
+      const response = await fetch(`${this.proxyUrl}/api/twitter-search?${params.toString()}`);
       if (!response.ok) {
         throw new Error(`Proxy request failed: ${response.status}`);
       }
@@ -28,7 +28,7 @@ class ProxyService {
 
   async generateCommentViaProxy(tweet: string): Promise<any> {
     try {
-      const response = await fetch(`${this.proxyUrl}/ai/generate-comment`, {
+      const response = await fetch(`${this.proxyUrl}/api/ai-generate-comment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ class ProxyService {
       }
       return await response.json();
     } catch (error) {
-      console.error('Proxy AI Comment Error:', error);
+      console.error('Proxy API Error:', error);
       throw new Error('Failed to generate comment via proxy.');
     }
   }

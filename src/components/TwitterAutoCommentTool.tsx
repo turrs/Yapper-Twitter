@@ -112,7 +112,7 @@ export default function TwitterAutoCommentTool() {
     const twitterToken = getCookie('twitter_token');
     if (twitterName && twitterToken) {
       setTokenStatus('checking');
-      fetch(import.meta.env.VITE_URL_BACKEND + '/twitter/me', {
+      fetch(import.meta.env.VITE_URL_BACKEND + '/api/twitter-me', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: twitterToken }),
@@ -263,7 +263,7 @@ export default function TwitterAutoCommentTool() {
         commentWithTag = `${comment} @${twitterTag.trim()}`;
       }
       // POST to backend to handle Twitter posting
-      const response = await fetch(import.meta.env.VITE_URL_BACKEND + '/twitter/post-comment', {
+      const response = await fetch(import.meta.env.VITE_URL_BACKEND + '/api/twitter-post-comment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -369,7 +369,7 @@ export default function TwitterAutoCommentTool() {
     setError(null);
     setSuccess(null);
     try {
-      const response = await fetch(import.meta.env.VITE_URL_BACKEND + '/twitter/generate-tweet', {
+      const response = await fetch(import.meta.env.VITE_URL_BACKEND + '/api/twitter-generate-tweet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: customPrompt })
@@ -407,7 +407,7 @@ export default function TwitterAutoCommentTool() {
     setError(null);
     setSuccess(null);
     try {
-      const response = await fetch(import.meta.env.VITE_URL_BACKEND + '/twitter/post-tweet', {
+      const response = await fetch(import.meta.env.VITE_URL_BACKEND + '/api/twitter-post-tweet', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
