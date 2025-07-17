@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 4000;
 const BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN || process.env.TWITTER_BEARER_TOKEN;
 app.use(cookieParser());
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: import.meta.env.VITE_URL_BACKEND,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
@@ -102,7 +102,7 @@ app.get('/oauth/twitter/callback', async (req, res) => {
       sameSite: 'lax',
       maxAge: tokenData.expires_in * 1000,
     });
-    return res.redirect('http://localhost:5173/');    
+    return res.redirect(`${import.meta.env.VITE_URL_FRONTEND}/`);    
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -174,7 +174,7 @@ app.post('/oauth/twitter/callback', async (req, res) => {
       sameSite: 'lax',
       maxAge: tokenData.expires_in * 1000,
     });
-    return res.redirect('http://localhost:5173/');    
+    return res.redirect(`${import.meta.env.VITE_URL_FRONTEND}/`);    
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

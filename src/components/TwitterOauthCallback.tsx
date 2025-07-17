@@ -16,7 +16,7 @@ export default function TwitterOauthCallback() {
       return;
     }
     // Send code to backend for token exchange
-    fetch('http://localhost:4000/oauth/twitter/callback', {
+    fetch(import.meta.env.VITE_URL_BACKEND + '/oauth/twitter/callback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
@@ -35,7 +35,7 @@ export default function TwitterOauthCallback() {
         if (data.user?.data) {
           localStorage.setItem('twitter_user', JSON.stringify(data.user.data));
         }
-        window.location.href = 'http://localhost:5173/';
+        window.location.href = `${import.meta.env.VITE_URL_FRONTEND}/`;
       })
       .catch((err) => {
         setStatus('error');

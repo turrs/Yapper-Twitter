@@ -4,7 +4,7 @@ class ProxyService {
 
   constructor() {
     // Default ke backend Express lokal
-    this.proxyUrl = import.meta.env.VITE_PROXY_SERVER_URL || 'http://localhost:4000';
+    this.proxyUrl = import.meta.env.VITE_URL_BACKEND;
   }
 
   async searchTweetsViaProxy(query: string, maxResults: number = 10): Promise<any[]> {
