@@ -6,8 +6,8 @@ const TWITTER_REDIRECT_URI = process.env.TWITTER_REDIRECT_URI;
 const VITE_URL_FRONTEND = process.env.VITE_URL_FRONTEND;
 
 // Jika Anda menggunakan Supabase, import dan inisialisasi di sini
-// import { createClient } from '@supabase/supabase-js';
-// const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+import { createClient } from '@supabase/supabase-js';
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST' && req.method !== 'GET') {
