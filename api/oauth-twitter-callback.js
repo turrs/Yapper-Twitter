@@ -70,8 +70,19 @@ export default async function handler(req, res) {
     }
 
     // Set cookie (jika environment mendukung)
-    res.setHeader('Set-Cookie', `twitter_token=${tokenData.access_token}; HttpOnly; Path=/; Max-Age=${tokenData.expires_in}`);
-
+    // res.setHeader('Set-Cookie', `twitter_token=${tokenData.access_token}; HttpOnly; Path=/; Max-Age=${tokenData.expires_in}`);
+    res.cookie('twitter_token', tokenData.access_token, {
+      httpOnly: true,
+      secure: false, // set true if using https
+      sameSite: 'lax',
+      maxAge: tokenData.expires_in * 1000,
+    });
+    res.cookie('twitter_name', userData.data.username, {
+      httpOnly: true,
+      secure: false, // set true if using https
+      sameSite: 'lax',
+      maxAge: tokenData.expires_in * 1000,
+    });
     // Redirect ke frontend (atau kirim data)
     if (VITE_URL_FRONTEND) {
       return res.redirect(`${VITE_URL_FRONTEND}/`);
