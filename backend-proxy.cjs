@@ -109,76 +109,7 @@ app.get('/oauth/twitter/callback', async (req, res) => {
 });
 
 // Untuk POST /oauth/twitter/callback { code: '...' }
-app.post('/oauth/twitter/callback', async (req, res) => {
-  console.log('[DEBUG] client_id:', TWITTER_CLIENT_ID);
-  console.log('[DEBUG] client_secret:', TWITTER_CLIENT_SECRET ? '[SET]' : '[MISSING]');
-  console.log('[DEBUG] base64:', Buffer.from(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`).toString('base64'));
 
-  const { code } = req.query;
-  if (!code) {
-    return res.status(400).json({ error: 'Missing code' });
-  }
-  try {
-    // Exchange code for access token
-    const tokenRes = await fetch('https://api.twitter.com/2/oauth2/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic ' + Buffer.from(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`).toString('base64'),
-      },
-      body: new URLSearchParams({
-        code,
-        grant_type: 'authorization_code',
-        client_id: TWITTER_CLIENT_ID,
-        redirect_uri: TWITTER_REDIRECT_URI,
-        code_verifier: process.env.TWITTER_CODE_VERIFIER || 'y_SfRG4BmOES02uqWeIkIgLQAlTBggyf_G7uKT51ku8',
-      }).toString(),
-    });
-    const tokenData = await tokenRes.json();
-    if (!tokenRes.ok) {
-      return res.status(tokenRes.status).json({ error: tokenData.error_description || 'Failed to get Twitter access token' });
-    }
-    // Fetch user info
-    const userRes = await fetch('https://api.twitter.com/2/users/me', {
-      headers: {
-        'Authorization': `Bearer ${tokenData.access_token}`,
-      },
-    });
-    const userData = await userRes.json();
-
-    // Upsert user/token to Supabase
-    let supabaseResult = null;
-    if (supabase && userData.data) {
-      const { data, error } = await supabase
-        .from('twitter_users')
-        .upsert({
-          twitter_user_id: userData.data.id,
-          username: userData.data.username,
-          name: userData.data.name,
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
-          token_expiry: tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString() : null,
-          scope: tokenData.scope,
-          token_type: tokenData.token_type,
-          raw: userData.data
-        }, { onConflict: ['twitter_user_id'] })
-        .select();
-      if (error) {
-        return res.status(500).json({ error: 'Supabase upsert error: ' + error.message });
-      }
-      supabaseResult = data;
-    }
-    res.cookie('twitter_token', tokenData.access_token, {
-      httpOnly: true,
-      secure: false, // set true if using https
-      sameSite: 'lax',
-      maxAge: tokenData.expires_in * 1000,
-    });
-    return res.redirect(`${import.meta.env.VITE_URL_FRONTEND}/`);    
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
 // app.post('/oauth/twitter/callback', async (req, res) => {
 //   const { code } = req.body;
