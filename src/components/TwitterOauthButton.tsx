@@ -1,7 +1,7 @@
 import xlogo from '../xlogo.png';
 
 const TWITTER_CLIENT_ID = import.meta.env.VITE_TWITTER_CLIENT_ID || 'NU1aemxZTUZieXZqZkNEOXU1TkU6MTpjaQ';
-const TWITTER_REDIRECT_URI = (import.meta.env.VITE_URL_BACKEND || '') + '/api/oauth/twitter/callback';
+const TWITTER_REDIRECT_URI = (import.meta.env.VITE_URL_BACKEND || '') + '/api/oauth-twitter-callback';
 const TWITTER_CODE_CHALLENGE = import.meta.env.VITE_TWITTER_CODE_CHALLENGE || 'abc123';
 
 function getTwitterOauthUrl() {
