@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         grant_type: 'authorization_code',
         client_id: TWITTER_CLIENT_ID,
         redirect_uri: TWITTER_REDIRECT_URI,
-        code_verifier: process.env.TWITTER_CODE_VERIFIER || 'y_SfRG4BmOES02uqWeIkIgLQAlTBggyf_G7uKT51ku8',
+        code_verifier: process.env.TWITTER_CODE_VERIFIER || 'abc123',
       }).toString(),
     });
     const tokenData = await tokenRes.json();
