@@ -5,7 +5,8 @@
   "description": "Ambil ID tweet dan auto-comment dari backend.",
   "permissions": [
     "scripting",
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
   "host_permissions": [
     "https://x.com/*"
@@ -21,7 +22,7 @@
     }
   ],
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "login.html",
     "default_icon": {
       "16": "icon16.png",
       "48": "icon48.png",

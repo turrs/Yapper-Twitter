@@ -9,6 +9,7 @@ export default async function handler(req, res) {
     return;
   }
 
+
   const { tweet } = req.body;
   if (!tweet) {
     return res.status(400).json({ error: 'Missing tweet content' });
@@ -38,6 +39,6 @@ export default async function handler(req, res) {
     }
     return res.status(200).json({ data });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(401).json({ error: error.message });
   }
 }

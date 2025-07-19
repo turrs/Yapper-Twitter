@@ -40,6 +40,19 @@ function insertGenerateButton(commentBox, getTweetTextFn) {
   btn.onclick = async () => {
     btn.disabled = true;
     btn.textContent = 'Loading...';
+    
+    // Check authentication first
+    const authResult = await new Promise((resolve) => {
+      chrome.storage.local.get(['authToken', 'userEmail'], resolve);
+    });
+    
+    if (!authResult.authToken || !authResult.userEmail) {
+      alert('Anda harus login terlebih dahulu! Silakan buka extension popup untuk login.');
+      btn.disabled = false;
+      btn.textContent = 'Generate Comment';
+      return;
+    }
+    
     const tweetText = getTweetTextFn();
     if (!tweetText) {
       alert('Isi tweet tidak ditemukan!');
@@ -48,16 +61,30 @@ function insertGenerateButton(commentBox, getTweetTextFn) {
       return;
     }
     console.log('tweetText:', tweetText);
-    // Ganti URL backend di bawah ini sesuai kebutuhan
-    const backendUrl = 'https://yapper-twitter.vercel.app/api/ai-generate-comment';
+    
+    const backendUrl = 'https://yapper-twitter.vercel.app/api/ai-generate-comment-supabase';
     try {
       const res = await fetch(backendUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authResult.authToken}`
+        },
         body: JSON.stringify({
               tweet: `Saya merupakan user twitter yang akan membalas tweet ini, tolong balaskan saya sebagai pemula untuk membalas tweet ini, lansung on point balasannnya dalam bahasa inggris, jangan balas selain itu : ${tweetText}`    
         })
       });
+      
+      if (res.status === 401) {
+        // Token expired or invalid
+        chrome.storage.local.remove(['authToken', 'userEmail', 'userId'], () => {
+          alert('Session expired. Please login again.');
+        });
+        btn.disabled = false;
+        btn.textContent = 'Generate Comment';
+        return;
+      }
+      
       const data = await res.json();
       console.log('data generate comment:', data);
       let comment = '';
