@@ -29,19 +29,39 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('🔍 Login attempt for:', email);
+    console.log('📡 Supabase URL:', process.env.SUPABASE_URL ? 'Set' : 'Not Set');
+    console.log('🔑 Service Key:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Set' : 'Not Set');
+    
     // Authenticate user using Supabase function
     const { data: authResult, error: authError } = await supabase.rpc('authenticate_user', {
       p_email: email,
       p_password: password
     });
 
+    console.log('📊 Auth result:', { authResult, authError });
+
     if (authError) {
-      console.error('Authentication error:', authError);
-      return res.status(401).json({ error: 'Invalid email or password' });
+      console.error('❌ Authentication error:', authError);
+      return res.status(401).json({ 
+        error: 'Invalid email or password',
+        debug: {
+          authError: authError.message,
+          code: authError.code
+        }
+      });
     }
 
     if (!authResult || authResult.length === 0) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      console.log('❌ No user found or password incorrect');
+      return res.status(401).json({ 
+        error: 'Invalid email or password',
+        debug: {
+          authResult: authResult,
+          userFound: !!authResult,
+          resultLength: authResult ? authResult.length : 0
+        }
+      });
     }
 
     const user = authResult[0];

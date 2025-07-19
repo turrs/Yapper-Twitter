@@ -94,6 +94,8 @@ loginForm.addEventListener('submit', async (e) => {
   showMessage('', '');
   
   try {
+    console.log('🔍 Login attempt:', { email, passwordLength: password.length });
+    
     // Use Supabase login endpoint
     const response = await fetch('https://yapper-twitter.vercel.app/api/login-supabase', {
       method: 'POST',
@@ -106,9 +108,14 @@ loginForm.addEventListener('submit', async (e) => {
       })
     });
     
+    console.log('📊 Response status:', response.status);
+    
     const data = await response.json();
+    console.log('📄 Response data:', data);
     
     if (response.ok && data.token) {
+      console.log('✅ Login successful, storing data...');
+      
       // Store authentication data
       chrome.storage.local.set({
         authToken: data.token,
@@ -116,15 +123,19 @@ loginForm.addEventListener('submit', async (e) => {
         userId: data.userId || null,
         userRole: data.role || 'user'
       }, () => {
+        console.log('💾 Data stored successfully');
         showMessage('Login berhasil! Redirecting...', 'success');
         setTimeout(() => {
           window.location.href = 'popup.html';
         }, 1000);
       });
     } else {
-      showMessage(data.message || data.error || 'Login gagal. Periksa email dan password Anda.');
+      console.log('❌ Login failed:', data);
+      const errorMessage = data.message || data.error || 'Login gagal. Periksa email dan password Anda.';
+      showMessage(errorMessage);
     }
   } catch (error) {
+    console.error('💥 Login error:', error);
     showMessage('Error: ' + error.message);
   } finally {
     loginBtn.disabled = false;
