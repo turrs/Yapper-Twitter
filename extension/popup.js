@@ -5,6 +5,7 @@ const resultDiv = document.getElementById('result');
 const fillBtn = document.getElementById('fillBtn');
 const userInfoDiv = document.getElementById('userInfo');
 const logoutBtn = document.getElementById('logoutBtn');
+const settingsBtn = document.getElementById('settingsBtn');
 
 let generatedComment = '';
 let authToken = '';
@@ -55,29 +56,37 @@ function checkAuth() {
 }
 
 // Handle logout
-logoutBtn.addEventListener('click', async () => {
-  try {
-    // Call logout API
-    const response = await fetch('https://yapper-twitter.vercel.app/api/logout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
-      }
-    });
-    
-    // Clear local storage regardless of API response
-    chrome.storage.local.remove(['authToken', 'userEmail', 'userId', 'userRole'], () => {
-      window.location.href = 'login.html';
-    });
-  } catch (error) {
-    console.error('Logout error:', error);
-    // Still clear local storage and redirect
-    chrome.storage.local.remove(['authToken', 'userEmail', 'userId', 'userRole'], () => {
-      window.location.href = 'login.html';
-    });
-  }
-});
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      // Call logout API
+      const response = await fetch('https://yapper-twitter.vercel.app/api/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      // Clear local storage regardless of API response
+      chrome.storage.local.remove(['authToken', 'userEmail', 'userId', 'userRole'], () => {
+        window.location.href = 'login.html';
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still clear local storage and redirect
+      chrome.storage.local.remove(['authToken', 'userEmail', 'userId', 'userRole'], () => {
+        window.location.href = 'login.html';
+      });
+    }
+  });
+}
+
+if (settingsBtn) {
+  settingsBtn.addEventListener('click', function() {
+    window.location.href = 'settings.html';
+  });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();

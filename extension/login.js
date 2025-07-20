@@ -21,6 +21,9 @@ const showLoginLink = document.getElementById('showLogin');
 const loginFormContainer = document.getElementById('loginFormContainer');
 const registerFormContainer = document.getElementById('registerFormContainer');
 
+// Settings button
+const settingsBtn = document.getElementById('settingsBtn');
+
 // Check if user is already logged in
 function checkLoginStatus() {
   chrome.storage.local.get(['authToken', 'userEmail'], (result) => {
@@ -30,6 +33,8 @@ function checkLoginStatus() {
     }
   });
 }
+
+
 
 // Show message to user
 function showMessage(text, type = 'error', targetDiv = messageDiv) {

@@ -1,6 +1,6 @@
 # API Functions - Vercel Serverless Limit Management
 
-## 📊 Current API Functions (12/12 limit)
+## 📊 Current API Functions (13/12 limit) ⚠️
 
 ### ✅ **Core Authentication Functions (4 functions)**
 1. `login-supabase.js` - User login dengan Supabase
@@ -19,6 +19,9 @@
 10. `twitter-post-comment.js` - Post comment to Twitter
 11. `twitter-post-tweet.js` - Post tweet to Twitter
 12. `twitter-search.js` - Search Twitter
+
+### ✅ **Kaito AI Integration (1 function)**
+13. `kaito-yaps.js` - **NEW** - Fetch yapping history from Kaito AI API
 
 ## 🗑️ **Files to Remove (Optional)**
 
@@ -107,6 +110,68 @@ If you need more space, combine Twitter functions into one file.
 - Track function execution times
 - Monitor cold start performance
 - Check memory usage
+
+## 🔧 **New Kaito AI Integration**
+
+### **API Endpoint: `/api/kaito-yaps`**
+- **Method**: GET
+- **Query Parameters**: 
+  - `username` (required): Twitter username
+  - `duration` (optional): Time period (7d, 30d, 90d, 180d, 365d) - default: 30d
+  - `topic_id` (optional): Topic identifier - default: CYSIC
+  - `top_n` (optional): Number of top results (10-1000) - default: 100
+- **Environment Variable**: `KAITO_API_KEY`
+- **Response**: Yapping history data with engagement metrics from leaderboard
+
+### **Usage Example:**
+```javascript
+// Basic request
+const response = await fetch('/api/kaito-yaps?username=elonmusk');
+const data = await response.json();
+
+// With custom parameters
+const params = new URLSearchParams({
+  username: 'elonmusk',
+  duration: '90d',
+  topic_id: 'AI',
+  top_n: '200'
+});
+const response = await fetch(`/api/kaito-yaps?${params.toString()}`);
+const data = await response.json();
+
+// Response format:
+{
+  "username": "elonmusk",
+  "yaps": [
+    {
+      "id": "123456789",
+      "content": "Tweet content here...",
+      "timestamp": "2024-01-01T00:00:00Z",
+      "likes": 1000,
+      "replies": 100,
+      "retweets": 50,
+      "url": "https://twitter.com/elonmusk/status/123456789",
+      "sentiment": "positive",
+      "topics": ["technology", "space"],
+      "engagement_score": 85
+    }
+  ],
+  "total_count": 1,
+  "last_updated": "2024-01-01T00:00:00Z",
+  "settings": {
+    "duration": "30d",
+    "topic_id": "CYSIC",
+    "top_n": "100"
+  }
+}
+```
+
+### **Extension Integration:**
+The extension now displays yapping history indicators next to Twitter usernames:
+- Shows summary: "📊 X yaps (Y avg likes)"
+- Click to view detailed modal with full yapping history
+- Caches results to improve performance
+- Works on all Twitter pages (timeline, profile, etc.)
 
 ## 💡 **Alternative Solutions**
 
